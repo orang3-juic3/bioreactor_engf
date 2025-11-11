@@ -6,9 +6,13 @@ void setupHeating() {
 void loopHeating() {
   // this runs in the loop function
 }
-void getTemperature() {
+double getTemperature() { // in Celsius
 
 }
-void setTemperatureSetpoint() {
+void setTemperatureSetpoint(double temperature) {
   
+}
+
+double getHeaterEnergy() { // in Wh
+
 }
