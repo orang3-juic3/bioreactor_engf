@@ -8,6 +8,4 @@ void loopHeating() {
 double getTemperature() { // in Celsius
 }
 void setTemperatureSetpoint(double temperature) {}
-
-double getHeaterEnergy() { // in Wh
-}
+double getTemperatureSetpoint() {}

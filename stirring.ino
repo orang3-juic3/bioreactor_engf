@@ -20,6 +20,7 @@
 #include <Arduino.h>
 #include <math.h>
 
+/*
 // ---------------------------- Pinout (EDIT AS NEEDED) ----------------------------
 static const int PIN_HALL      = 34;   // Hall input (GPIO34 is input-only; external pull-up as needed)
 static const int PIN_MOTOR_PWM = 25;   // PWM to motor driver
@@ -200,23 +201,23 @@ void loopStirring() {
   }
   #endif
 }
-
+*/
 // ---------------------------- Placeholders to match your skeleton ----------------
-void getTemperature() {
-  // Stirring subsystem does not read temperature directly.
+double getRPM() {
 }
 
-void setTemperatureSetpoint() {
-  // Not used here (belongs to Heating subsystem).
+double getPhotoevents() {
+  // This should reset the counter!
 }
 
 // ---------------------------- Optional helpers for tuning -----------------------
 void setStirringSetpoint(float rpm) {
-  g_rpmSetpoint = clampf(rpm, 0.0f, RPM_MAX_CAP);
+  //g_rpmSetpoint = clampf(rpm, 0.0f, RPM_MAX_CAP);
 }
+double getRPMSetpoint(){}
 
 void setPidGains(float kp, float ki, float kd) {
-  g_KP = kp;
+  /*g_KP = kp;
   g_KI = ki;
-  g_KD = kd;
+  g_KD = kd;*/
 }

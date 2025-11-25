@@ -16,9 +16,4 @@ void addAcid() {}
 
 // Should add base to the solution
 void addBase() {}
-
-// Should return the acid actuator's current PWM
-double getAcidActuatorPWM() {}
-
-// Should return the base actuator's current PWM
-double getBaseActuatorPWM() {}
+double getpHSetpoint() {}
