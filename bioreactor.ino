@@ -8,6 +8,8 @@ void setup() {
   // rxPin = 17 (A3), txPin = 16 (A2)
   Serial1.begin(115200, SERIAL_8N1, 19, 20);
   Serial.println("Started (Serial1 RX=19, TX=20)");
+  setUpStirring();
+  setupPH();
   setupHeating();
 }
 
@@ -19,6 +21,9 @@ std::vector<double> pH;
 std::vector<double> rpm;
 
 void loop() {
+  loopStirring();
+  loopPH();
+  loopHeating();
   //do looping things
   temp.push_back(getTemperature());
   pH.push_back(getPH());

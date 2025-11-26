@@ -3,7 +3,8 @@
 // With this in mind, modify at your own discretion
 
 // Should setup acid and base actuators
-void setupPHSystem() {}
+void setupPH() {}
+void loopPH() {}
 
 // Should set a setpoint for pH
 void setTargetPH(double targetPH) {}
