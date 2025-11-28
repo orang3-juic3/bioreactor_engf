@@ -8,7 +8,7 @@ void setup() {
   // rxPin = 17 (A3), txPin = 16 (A2)
   Serial1.begin(115200, SERIAL_8N1, 19, 20);
   Serial.println("Started (Serial1 RX=19, TX=20)");
-  setUpStirring();
+  setupStirring();
   setupPH();
   setupHeating();
 }
