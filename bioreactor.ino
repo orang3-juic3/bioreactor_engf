@@ -41,7 +41,8 @@ void loop() {
     
     JsonDocument doc;
     makeReport(doc);
-    serializeJson(doc, Serial);
+    serializeJson(doc, Serial1);
+    Serial1.print("\n")
     last = millis();
     //Serial1.println("heartbeat");
     temp.clear();
