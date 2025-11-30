@@ -6,6 +6,9 @@ void loopHeating() {
   // this runs in the loop function
 }
 double getTemperature() { // in Celsius
+return 37.8;
 }
 void setTemperatureSetpoint(double temperature) {}
-double getTemperatureSetpoint() {}
+double getTemperatureSetpoint() {
+  return 0.0;
+}

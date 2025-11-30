@@ -3,14 +3,15 @@
 #include <vector>
 #include <math.h>
 
+
 void setup() {
   Serial.begin(115200);
-  // rxPin = 17 (A3), txPin = 16 (A2)
+  Serial.println("Hello!");
+  /*setupStirring();
+  setupPH();
+  setupHeating();*/
   Serial1.begin(115200, SERIAL_8N1, 19, 20);
   Serial.println("Started (Serial1 RX=19, TX=20)");
-  setupStirring();
-  setupPH();
-  setupHeating();
 }
 
 
@@ -21,25 +22,37 @@ std::vector<double> pH;
 std::vector<double> rpm;
 
 void loop() {
-  loopStirring();
+  
+  // rxPin = 17 (A3), txPin = 16 (A2)
+
+  /*loopStirring();
   loopPH();
-  loopHeating();
+  loopHeating();*/
   //do looping things
   temp.push_back(getTemperature());
   pH.push_back(getPH());
   rpm.push_back(getRPM());
   samples++;
-  if (millis() - last >= 1000) {
-    last = millis();
+  delay(137);
+  if ((millis() - last >= 1000 &&
+      !temp.empty() &&
+      pH.size() == temp.size() &&
+      rpm.size() == temp.size() )|| temp.size() > 50) {
+    
     JsonDocument doc;
     makeReport(doc);
-    serializeJson(doc, Serial1);
+    serializeJson(doc, Serial);
+    last = millis();
     //Serial1.println("heartbeat");
-    //Serial.println("Sent: heartbeat");
+    temp.clear();
+    pH.clear();
+    rpm.clear();
+    samples = 0;
+
   }
-  while (Serial1.available()) {
+  /*while (Serial1.available()) {
     Serial.write(Serial1.read()); // show incoming data on USB monitor
-  }
+  }*/
 }
 template <typename T> 
 class MaxMin {
@@ -62,16 +75,16 @@ class MaxMin {
       adjMax(i);
     }
 };
-void makeReport(JsonDocument& doc) {
+template <typename A>
+void makeReport(A& doc) {
   unsigned long cTime = millis();
-  double min = -1000000.0;
+  double min = 1000000.0;
   MaxMin<double> tempMinMax(min ,-min, temp);
   MaxMin<double> phMinMax(min ,-min, pH);
   MaxMin<double> rpmMinMax(min ,-min, rpm);
   double tMean = 0;
   double pHmean = 0;
   double rpmMean = 0;
-
   for (int i  =0; i < temp.size(); ++i) {
     tempMinMax.adjBoth(i);
     phMinMax.adjBoth(i);
@@ -80,12 +93,13 @@ void makeReport(JsonDocument& doc) {
     pHmean += pH[i];
     rpmMean += rpm[i];
   }
-  tMean /= (double) temp.size();
-  pHmean /= (double) temp.size();
-  rpmMean /= (double) temp.size();
+  double n = static_cast<double>(temp.size());
+  tMean /= n;
+  pHmean /= n;
+  rpmMean /= n;
   doc["window"]["start"] = last;
   doc["window"]["end"] = cTime;
-  doc["window"]["seconds"] = floor((double) (cTime - last) / 1000.0); // unsafe cast
+  doc["window"]["seconds"] = (cTime - last) / 1000; // unsafe cast
   doc["window"]["samples"] = samples;
   doc["setpoints"]["temperature_C"] = getTemperatureSetpoint();
   doc["setpoints"]["pH"] = getpHSetpoint();

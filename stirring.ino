@@ -234,6 +234,7 @@ void loopStirring() {
 
 // ---------------------------- Placeholders to match your skeleton ----------------
 double getRPM() {
+  return 1.0;
 }
 
 double getPhotoevents() {
@@ -241,7 +242,9 @@ double getPhotoevents() {
 }
 
 // ---------------------------- Optional helpers for tuning -----------------------
-double getRPMSetpoint(){}
+double getRPMSetpoint(){
+  return 0.0;
+}
 
 
 // Public setters

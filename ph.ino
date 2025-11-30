@@ -10,11 +10,15 @@ void loopPH() {}
 void setTargetPH(double targetPH) {}
 
 // Should return the current pH in the system
-double getPH() {}
+double getPH() {
+  return 7.0;
+}
 
 // Should add acid to the solution
 void addAcid() {}
 
 // Should add base to the solution
 void addBase() {}
-double getpHSetpoint() {}
+double getpHSetpoint() {
+  return 0.0;
+}
