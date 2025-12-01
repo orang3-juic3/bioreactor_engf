@@ -1,38 +1,37 @@
+namespace pHImpl {
+
+
+
+double pH=0, pHsmoothed=0, sensorValue=0, inputVoltage=0, error=0, integralError = 0;
+double goalpH = 7.0;
+
+
 const byte pHPin=A0, acidPumpPin=3, basePumpPin=9; // pins need to be the same on breadboard
 //acidpump is pump B and basepump is A for now
-const float KpH = 3.5;
-const float k = 5.0/4095.0;
-const float offset = -4.0; // depends on calibrated pH value
-float goalpH = 7.0;
-const float deadband = 0.1;
-const float Kp = 150.0, Ki = 0.5; // pi controller constants
-float pH=0, pHsmoothed=0, sensorValue=0, inputVoltage=0, error=0, integralError = 0;
-const float temp_calib = 25.0 + 273.15;
-float temp_curr= 25.0 + 273.15;
+const double KpH = 3.5;
+const double k = 5.0/4095.0;
+const double offset = -4.0; // depends on calibrated pH value
+const double deadband = 0.1;
+const double Kp = 150.0, Ki = 0.5; // pi controller constants
+const double temp_calib = 25.0 + 273.15;
+double temp_curr= 25.0 + 273.15;
 unsigned long Timems, T2;
 int pwmSignal;
- 
+
+
+}
+
 void setupPH() {
+  using namespace pHImpl;
   pinMode(pHPin,INPUT);
   pinMode(acidPumpPin, OUTPUT);
   pinMode(basePumpPin, OUTPUT);
   Serial.begin(2000000);
   pHsmoothed = analogRead(pHPin) * k * KpH;
 }
-
-float getpH(){
-    return pHsmoothed;
-}
-
-float getpHSetPoint(){
-    return goalpH;
-}
-
-void setTargetpH(float targetpH){
-    goalpH = targetpH;
-}
  
 void loopPH() {
+  using namespace pHImpl;
   Timems=millis();
   if(Timems-T2>=3000) { // run every 3 seconds
     // measure current pH value
@@ -71,4 +70,15 @@ void loopPH() {
       }
     }
   }
+}
+double getPH(){
+  return pHImpl::pHsmoothed;
+}
+
+double getpHSetpoint(){
+    return pHImpl::goalpH;
+}
+
+void setTargetpH(double targetpH){
+    pHImpl::goalpH = targetpH;
 }

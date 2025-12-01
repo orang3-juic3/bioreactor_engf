@@ -1,8 +1,10 @@
+namespace HeatingImpl {
+
 // Heating control parameters and constants
 const byte  thermistorpin = A7;
 const byte  heaterpin     = 12;
 
-const float Tset  = 35.0;       // Setpoint temperature in °C
+ float Tset  = 35.0;       // Setpoint temperature in °C
 const float deltaT = 0.5;       // Hysteresis band in °C
 const float Vcc   = 3.3;        // ADC reference voltage
 const float R     = 10000.0;    // Series resistor (Ω)
@@ -14,8 +16,21 @@ const float Kadc  = 3.3 / 4095; // ADC LSB (V/count)
 float Vadc, T, Rth;
 int   currtime, prevtime, T1, T2;
 bool  heater, prevheater;
+}
 
+double getTemperature() {  // in Celsius
+  return HeatingImpl::T;
+}
+
+void setTemperatureSetpoint(double temperature) {
+  HeatingImpl::Tset = temperature;
+}
+
+double getTemperatureSetpoint() {
+  return HeatingImpl::Tset;  
+}
 void setupHeating() {
+  using namespace HeatingImpl;
   pinMode(thermistorpin, INPUT);
   pinMode(heaterpin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -31,6 +46,7 @@ void setupHeating() {
 }
 
 void loopHeating() {
+  using namespace HeatingImpl;
   currtime = millis();
 
   // 100 ms update period
@@ -78,18 +94,6 @@ void loopHeating() {
     Serial.println(" C");
     }
   }
-}
-
-double getTemperature() {  // in Celsius
-  return T;
-}
-
-void setTemperatureSetpoint(double temperature) {
-  tSet = temperature;
-}
-
-double getTemperatureSetpoint() {
-  return tSet;  
 }
 
 

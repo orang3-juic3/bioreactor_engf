@@ -1,3 +1,5 @@
+namespace StirringImpl {
+
 /*
   Bioreactor Stirring Control Module
 
@@ -103,9 +105,35 @@ static inline uint32_t limitDutySlew(uint32_t current, int target, int maxStep) 
   if (out > (int)PWM_MAX_DUTY) out = PWM_MAX_DUTY;
   return (uint32_t)out;
 }
+}
+// Getter Functions for Main File 
 
+double getRPM() {
+  return (double)StirringImpl::g_rpm;
+}
 
+double getRPMSetpoint() {
+  return (double)StirringImpl::g_setpointRpm;
+}
+
+// Placeholder for photoevents 
+double getPhotoevents() {
+  return 0.0;
+}
+
+// Setter Functions
+
+void setStirringSetpoint(float rpm) {
+  StirringImpl::g_setpointRpm = StirringImpl::clampf(rpm, 0.0f, StirringImpl::RPM_MAX_CAP);
+}
+
+void setPidGains(float kp, float ki, float kd) {
+  StirringImpl::Kp = kp;
+  StirringImpl::Ki = ki;
+  StirringImpl::Kd = kd;
+}
 void setupStirring() {
+  using namespace StirringImpl;
   pinMode(PIN_HALL, INPUT);
   pinMode(PIN_FAULT_LED, OUTPUT);
   digitalWrite(PIN_FAULT_LED, LOW);
@@ -126,6 +154,7 @@ void setupStirring() {
 }
 
 void loopStirring() {
+  using namespace StirringImpl;
   uint32_t t_now_ms = millis();
 
   // RPM Estimation 
@@ -217,31 +246,4 @@ void loopStirring() {
     g_setpointRpm = clampf(g_setpointRpm, 0.0f, RPM_MAX_CAP);
     Serial.printf("SP=%.1f RPM  Kp=%.2f Ki=%.2f Kd=%.2f\n", g_setpointRpm, Kp, Ki, Kd);
   }
-}
-
-// Getter Functions for Main File 
-
-double getRPM() {
-  return (double)g_rpm;
-}
-
-double getRPMSetpoint() {
-  return (double)g_setpointRpm;
-}
-
-// Placeholder for photoevents 
-double getPhotoevents() {
-  return 0.0;
-}
-
-// Setter Functions
-
-void setStirringSetpoint(float rpm) {
-  g_setpointRpm = clampf(rpm, 0.0f, RPM_MAX_CAP);
-}
-
-void setPidGains(float kp, float ki, float kd) {
-  Kp = kp;
-  Ki = ki;
-  Kd = kd;
 }
