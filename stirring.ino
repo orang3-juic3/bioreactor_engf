@@ -139,9 +139,10 @@ void loopStirring() {
     t_lastRpmMs = t_now_ms;
   }
 
-  // Stall Detection 
+  // Stall Detection - only trigger if motor should be running but isn't
   uint32_t lastPulseMs = g_lastPulseUs / 1000;
-  bool stalled = (t_now_ms > lastPulseMs) && ((t_now_ms - lastPulseMs) > STALL_TIMEOUT_MS);
+  bool stalled = (g_setpointRpm > 10.0f) && (g_pwmDuty > 100) &&
+                 (t_now_ms > lastPulseMs) && ((t_now_ms - lastPulseMs) > STALL_TIMEOUT_MS);
 
   if (stalled) {
     motorSetDuty(0);
@@ -198,13 +199,20 @@ void loopStirring() {
   // Serial Tuning Commands
   if (Serial.available()) {
     char c = Serial.read();
-    if (c == 'u') g_setpointRpm += 50.0f;
-    if (c == 'd') g_setpointRpm -= 50.0f;
+    if (c == 'u') {
+      g_setpointRpm += 50.0f;
+      g_inDeadband = false;  // Exit deadband on setpoint change
+    }
+    if (c == 'd') {
+      g_setpointRpm -= 50.0f;
+      g_inDeadband = false;  // Exit deadband on setpoint change
+    }
     if (c == 'r') {
       Kp = 0.6f;
       Ki = 0.8f;
       Kd = 0.0f;
       g_errI = 0.0f;
+      g_inDeadband = false;
     }
     g_setpointRpm = clampf(g_setpointRpm, 0.0f, RPM_MAX_CAP);
     Serial.printf("SP=%.1f RPM  Kp=%.2f Ki=%.2f Kd=%.2f\n", g_setpointRpm, Kp, Ki, Kd);
