@@ -7,8 +7,8 @@
 void setup() {
   Serial.begin(115200);
   Serial.println("Hello!");
-  /*setupStirring();
-  setupPH();
+  setupStirring();
+  /*setupPH();
   setupHeating();*/
   Serial1.begin(115200, SERIAL_8N1, 19, 20);
   Serial.println("Started (Serial1 RX=19, TX=20)");
@@ -25,8 +25,8 @@ void loop() {
   
   // rxPin = 17 (A3), txPin = 16 (A2)
 
-  /*loopStirring();
-  loopPH();
+  loopStirring();
+  /*loopPH();
   loopHeating();*/
   //do looping things
   temp.push_back(getTemperature());
