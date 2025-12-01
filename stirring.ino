@@ -31,6 +31,7 @@ static const uint8_t PIN_MOTOR_PWM = 25;
 static const uint8_t PIN_FAULT_LED = 2;
 
 // -------------------- PWM Configuration --------------------
+static const uint8_t  PWM_CHANNEL   = 0;         // LEDC channel (0-15)
 static const uint32_t PWM_FREQ_HZ   = 20000;
 static const uint8_t  PWM_RES_BITS  = 12;
 static const uint32_t PWM_MAX_DUTY  = (1 << PWM_RES_BITS) - 1;  // 4095
@@ -85,7 +86,7 @@ static inline float clampf(float x, float lo, float hi) {
 static inline void motorSetDuty(uint32_t duty) {
   if (duty > PWM_MAX_DUTY) duty = PWM_MAX_DUTY;
   g_pwmDuty = duty;
-  ledcWrite(PIN_MOTOR_PWM, duty);
+  ledcWrite(PWM_CHANNEL, duty);
 }
 
 static inline float computeRPM(uint32_t pulses, uint32_t windowMs) {
@@ -109,9 +110,9 @@ void setupStirring() {
   pinMode(PIN_FAULT_LED, OUTPUT);
   digitalWrite(PIN_FAULT_LED, LOW);
 
-  if (!ledcAttach(PIN_MOTOR_PWM, PWM_FREQ_HZ, PWM_RES_BITS)) {
-    Serial.println("ERROR: ledcAttach failed for motor PWM");
-  }
+  // Setup PWM using ledcSetup and ledcAttachPin (Arduino Nano ESP32 compatible)
+  ledcSetup(PWM_CHANNEL, PWM_FREQ_HZ, PWM_RES_BITS);
+  ledcAttachPin(PIN_MOTOR_PWM, PWM_CHANNEL);
   motorSetDuty(0);
 
   // Attach Hall sensor interrupt
