@@ -3,9 +3,19 @@
 #include <vector>
 #include <math.h>
 
-#define HEATING true
-#define STIRRING true
-#define PH true
+#define __NANO_PROD__ false
+#if __NANO_PROD__
+  #define HEATING true
+  #define STIRRING true
+  #define PH true
+#else
+  #define HEATING false
+  #define STIRRING false
+  #define PH false
+#endif
+
+
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Hello!");
@@ -35,7 +45,7 @@ void loop() {
   loopPH();
   loopHeating();
   //do looping things
-  temp.push_back(getTemperature());
+  temp.push_back(getT());
 
   pHlist.push_back(getPH());
   rpm.push_back(getRPM());
@@ -52,8 +62,13 @@ void loop() {
     
     JsonDocument doc;
     makeReport(doc);
+    #if __NANO_PROD__
     serializeJson(doc, Serial1);
     Serial1.print("\n");
+    #else
+    serializeJson(doc, Serial);
+    Serial.print("\n");
+    #endif
     last = millis();
     //Serial1.println("heartbeat");
     temp.clear();
@@ -139,9 +154,9 @@ void makeReport(A& doc) {
   doc["rpm"]["mean"] = rpmMean;
   doc["rpm"]["min"] = rpmMinMax.min;
   doc["rpm"]["max"] = rpmMinMax.max;
-  doc["pHlist"]["mean"] = pHmean;
-  doc["pHlist"]["min"] = phMinMax.min;
-  doc["pHlist"]["max"] = phMinMax.max;
+  doc["pH"]["mean"] = pHmean;
+  doc["pH"]["min"] = phMinMax.min;
+  doc["pH"]["max"] = phMinMax.max;
   doc["temperature_C"]["mean"] = tMean;
   doc["temperature_C"]["min"] = tempMinMax.min;
   doc["temperature_C"]["max"] = tempMinMax.max;
@@ -150,5 +165,9 @@ void makeReport(A& doc) {
   doc["actuators_avg"]["base_pwm"] = basePwmMean;
   doc["actuators_avg"]["motor_pwm"] = motorPwmMean;
   doc["heater_energy_Wh"] = heaterEnergy;
+  doc["dosing_l"]["acid"] = getAcidDosingL();
+  doc["dosing_l"]["base"] = getBaseDosingL();
+
+
 }
  
