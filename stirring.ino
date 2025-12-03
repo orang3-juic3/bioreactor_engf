@@ -38,7 +38,6 @@ namespace StirringImpl {
 // -------------------- Pin Configuration --------------------
 static const uint8_t PIN_HALL      = 5;
 static const uint8_t PIN_MOTOR_PWM = 21;
-static const uint8_t PIN_FAULT_LED = LED_BUILTIN;
 
 // -------------------- PWM Configuration --------------------
 static const uint8_t  PWM_CHANNEL   = 0;         // LEDC channel (0-15)
@@ -156,12 +155,12 @@ void setupStirring() {
   using namespace StirringImpl;
   // Hall sensor: internal pull-up (sensor likely open-collector) and count both edges
   pinMode(PIN_HALL, INPUT_PULLUP);
-  pinMode(PIN_FAULT_LED, OUTPUT);
-  digitalWrite(PIN_FAULT_LED, LOW);
 
   // Setup PWM using ledcSetup and ledcAttachPin (Arduino Nano ESP32 compatible)
+  #if __NANO_PROD__
   ledcSetup(PWM_CHANNEL, PWM_FREQ_HZ, PWM_RES_BITS);
   ledcAttachPin(PIN_MOTOR_PWM, PWM_CHANNEL);
+  #endif
   motorSetDuty(0);
 
   // Attach Hall sensor interrupt
@@ -200,11 +199,7 @@ void loopStirring() {
 
   if (stalled) {
     motorSetDuty(0);
-    digitalWrite(PIN_FAULT_LED, HIGH);
-  } else {
-    digitalWrite(PIN_FAULT_LED, LOW);
   }
-
   // Control Loop (10ms interval) 
   if (!stalled && (t_now_ms - t_lastCtrlMs) >= 10) {
     // compute dt in seconds using the actual control period (before updating t_lastCtrlMs)

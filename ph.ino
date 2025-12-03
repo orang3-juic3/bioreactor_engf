@@ -19,9 +19,17 @@ const double deadband = 0.1;
 const double Kp = 150.0, Ki = 0.5; // pi controller constants
 const double temp_calib = 25.0 + 273.15;
 double temp_curr = 25.0 + 273.15;
-unsigned long Timems, T2;
+unsigned long Timems, T_2;
 int pwmSignal;
+// Dosing volume tracking
+double acidDosingL = 0.0;  // Cumulative acid volume in liters
+double baseDosingL = 0.0;  // Cumulative base volume in liters
 
+// Pump flow rate constants (L/min at full PWM=255)
+// These should be calibrated for your specific pumps
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+const double acidPumpFlowRate = 0.1;  // L/min at PWM=255
+const double basePumpFlowRate = 0.1;  // L/min at PWM=255
 
 }
 
@@ -40,9 +48,9 @@ void loopPH() {
   #if PH
   using namespace pHImpl;
   Timems=millis();
-  if(Timems-T2>=3000) { // run every 3 seconds
+  if(Timems-T_2>=3000) { // run every 3 seconds
     // measure current pH value
-    temp_curr = (HeatingImpl::getTemperature() != 0.0) ? (HeatingImpl::getTemperature() + 273.15) : (25.0 + 273.15);
+    temp_curr = (getT() != 0.0) ? (getT() + 273.15) : (25.0 + 273.15);
     inputVoltage = analogRead(pHPin);
     sensorValue = k * inputVoltage; // ph circuit value 0-5
     pH = KpH * temp_calib/temp_curr * sensorValue + offset;
@@ -53,10 +61,10 @@ void loopPH() {
     // PI control starts here
 
     error = pHsmoothed - goalpH;
-    integralError += error * (Timems - T2)/1000.0;
+    integralError += error * (Timems - T_2)/1000.0;
 
-
-    T2 = Timems;
+    double deltaTime = (Timems - T_2) / 1000.0 / 60.0; // Convert ms to minutes
+    T_2 = Timems;
 
     if (abs(error) < deadband){
       analogWrite(acidPumpPin, 0);
@@ -70,10 +78,12 @@ void loopPH() {
       if(error > 0){
         analogWrite(acidPumpPin, pwmSignal);
         analogWrite(basePumpPin, 0);
+        acidDosingL += (pwmSignal / 255.0) * acidPumpFlowRate * deltaTime;
       }
       else{
         analogWrite(basePumpPin, pwmSignal);
         analogWrite(acidPumpPin, 0);
+        baseDosingL += (pwmSignal / 255.0) * basePumpFlowRate * deltaTime;
       }
     }
   }
@@ -98,5 +108,14 @@ double getAcidPWM() {
 double getBasePWM() {
     // Return normalized PWM value (0.0 to 1.0)
     return pHImpl::error < 0 ? pHImpl::pwmSignal / 255.0 : 0.0;
+}
+
+// Getter functions for dosing volumes in liters
+double getAcidDosingL() {
+    return pHImpl::acidDosingL;
+}
+
+double getBaseDosingL() {
+    return pHImpl::baseDosingL;
 }
 
