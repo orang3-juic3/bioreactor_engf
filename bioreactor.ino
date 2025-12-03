@@ -3,12 +3,15 @@
 #include <vector>
 #include <math.h>
 
+#define HEATING true
+#define STIRRING true
+#define PH true
 void setup() {
   Serial.begin(115200);
   Serial.println("Hello!");
   setupStirring();
-  //setupPH();
-  //setupHeating();
+  setupPH();
+  setupHeating();
   Serial1.begin(115200, SERIAL_8N1, 19, 20);
   Serial.println("Started (Serial1 RX=19, TX=20)");
 }
@@ -29,10 +32,11 @@ void loop() {
   // rxPin = 17 (A3), txPin = 16 (A2)
 
   loopStirring();
-  //loopPH();
-  //loopHeating();
+  loopPH();
+  loopHeating();
   //do looping things
   temp.push_back(getTemperature());
+
   pHlist.push_back(getPH());
   rpm.push_back(getRPM());
   acidPwm.push_back(getAcidPWM());
@@ -130,7 +134,7 @@ void makeReport(A& doc) {
   doc["window"]["seconds"] = (cTime - last) / 1000; // unsafe cast
   doc["window"]["samples"] = samples;
   doc["setpoints"]["temperature_C"] = getTemperatureSetpoint();
-  doc["setpoints"]["pHlist"] = getpHSetpoint();
+  doc["setpoints"]["pH"] = getpHSetpoint();
   doc["setpoints"]["rpm"] = getRPMSetpoint();
   doc["rpm"]["mean"] = rpmMean;
   doc["rpm"]["min"] = rpmMinMax.min;
@@ -142,8 +146,8 @@ void makeReport(A& doc) {
   doc["temperature_C"]["min"] = tempMinMax.min;
   doc["temperature_C"]["max"] = tempMinMax.max;
   doc["actuators_avg"]["heater_pwm"] = heaterPwmMean;
-  doc["actuators_avg"]["acid_pwm"] = heaterPwmMean;
-  doc["actuators_avg"]["base_pwm"] = heaterPwmMean;
+  doc["actuators_avg"]["acid_pwm"] = acidPwmMean;
+  doc["actuators_avg"]["base_pwm"] = basePwmMean;
   doc["actuators_avg"]["motor_pwm"] = motorPwmMean;
   doc["heater_energy_Wh"] = heaterEnergy;
 }

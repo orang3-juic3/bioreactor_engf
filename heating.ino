@@ -1,3 +1,6 @@
+
+
+
 namespace HeatingImpl {
 
 // Heating control parameters and constants
@@ -21,12 +24,12 @@ unsigned long lastEnergyUpdate = 0;
 double totalEnergyWh = 0.0;  // Accumulated energy in Watt-hours
 }
 
-double getTemperature() {  // in Celsius
-  return HeatingImpl::T;
-}
-
 void setTemperatureSetpoint(double temperature) {
   HeatingImpl::Tset = temperature;
+}
+
+double getTemperature() {  // in Celsius
+  return HeatingImpl::T;
 }
 
 double getTemperatureSetpoint() {
@@ -61,6 +64,7 @@ void resetHeaterEnergy() {
     HeatingImpl::lastEnergyUpdate = millis();
 }
 void setupHeating() {
+  #if HEATING
   using namespace HeatingImpl;
   pinMode(thermistorpin, INPUT);
   pinMode(heaterpin, OUTPUT);
@@ -74,9 +78,11 @@ void setupHeating() {
 
   T1 = millis();
   T2 = T1;
+  #endif
 }
 
 void loopHeating() {
+  #if HEATING
   using namespace HeatingImpl;
   getHeaterEnergyWh();
   currtime = millis();
@@ -126,6 +132,7 @@ void loopHeating() {
     Serial.println(" C");
     }
   }
+  #endif
 }
 
 

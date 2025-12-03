@@ -152,6 +152,7 @@ void setPidGains(float kp, float ki, float kd) {
 }
 
 void setupStirring() {
+  #if STIRRING
   using namespace StirringImpl;
   // Hall sensor: internal pull-up (sensor likely open-collector) and count both edges
   pinMode(PIN_HALL, INPUT_PULLUP);
@@ -172,9 +173,11 @@ void setupStirring() {
   t_lastDebugMs = millis();
 
   Serial.println("Stirring subsystem initialized");
+  #endif
 }
 
 void loopStirring() {
+  #if STIRRING
   using namespace StirringImpl;
   uint32_t t_now_ms = millis();
 
@@ -277,4 +280,6 @@ void loopStirring() {
     g_setpointRpm = clampf(g_setpointRpm, 0.0f, RPM_MAX_CAP);
     Serial.printf("SP=%.1f RPM  Kp=%.2f Ki=%.2f Kd=%.2f\n", g_setpointRpm, Kp, Ki, Kd);
   }
+  #endif
+  
 }

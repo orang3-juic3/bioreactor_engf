@@ -26,15 +26,18 @@ int pwmSignal;
 }
 
 void setupPH() {
+  #if PH
   using namespace pHImpl;
   pinMode(pHPin,INPUT);
   pinMode(acidPumpPin, OUTPUT);
   pinMode(basePumpPin, OUTPUT);
   Serial.begin(2000000);
   pHsmoothed = analogRead(pHPin) * k * KpH;
+  #endif
 }
  
 void loopPH() {
+  #if PH
   using namespace pHImpl;
   Timems=millis();
   if(Timems-T2>=3000) { // run every 3 seconds
@@ -74,6 +77,7 @@ void loopPH() {
       }
     }
   }
+  #endif
 }
 double getPH(){
   return pHImpl::pHsmoothed;
