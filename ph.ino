@@ -63,7 +63,7 @@ void loopPH() {
     error = pHsmoothed - goalpH;
     integralError += error * (Timems - T_2)/1000.0;
 
-
+    double deltaTime = (Timems - T_2) / 1000.0 / 60.0; // Convert ms to minutes
     T_2 = Timems;
 
     if (abs(error) < deadband){

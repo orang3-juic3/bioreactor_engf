@@ -3,7 +3,7 @@
 #include <vector>
 #include <math.h>
 
-#define __NANO_PROD__ false
+#define __NANO_PROD__ true
 #if __NANO_PROD__
   #define HEATING true
   #define STIRRING true
