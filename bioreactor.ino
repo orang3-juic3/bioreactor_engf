@@ -7,8 +7,8 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Hello!");
   setupStirring();
-  setupPH();
-  setupHeating();
+  //setupPH();
+  //setupHeating();
   Serial1.begin(115200, SERIAL_8N1, 19, 20);
   Serial.println("Started (Serial1 RX=19, TX=20)");
 }
@@ -19,20 +19,28 @@ int samples = 0;
 std::vector<double> temp;
 std::vector<double> pHlist;
 std::vector<double> rpm;
+std::vector<double> acidPwm;
+std::vector<double> basePwm;
+std::vector<double> heaterPwm;
+std::vector<double> motorPwm;
 
 void loop() {
   
   // rxPin = 17 (A3), txPin = 16 (A2)
 
   loopStirring();
-  loopPH();
-  loopHeating();
+  //loopPH();
+  //loopHeating();
   //do looping things
   temp.push_back(getTemperature());
   pHlist.push_back(getPH());
   rpm.push_back(getRPM());
+  acidPwm.push_back(getAcidPWM());
+  basePwm.push_back(getBasePWM());
+  heaterPwm.push_back(getHeaterPWM());
+  motorPwm.push_back(getMotorPWM());
+
   samples++;
-  delay(137);
   if ((millis() - last >= 1000 &&
       !temp.empty() &&
       pHlist.size() == temp.size() &&
@@ -47,6 +55,10 @@ void loop() {
     temp.clear();
     pHlist.clear();
     rpm.clear();
+    acidPwm.clear();
+    basePwm.clear();
+    heaterPwm.clear();
+    motorPwm.clear();
     samples = 0;
 
   }
@@ -85,6 +97,14 @@ void makeReport(A& doc) {
   double tMean = 0;
   double pHmean = 0;
   double rpmMean = 0;
+
+  double acidPwmMean = 0;
+  double basePwmMean = 0;
+  double heaterPwmMean = 0;
+  double motorPwmMean = 0;
+
+  double heaterEnergy = getHeaterEnergyWh();
+
   for (int i  =0; i < temp.size(); ++i) {
     tempMinMax.adjBoth(i);
     phMinMax.adjBoth(i);
@@ -92,11 +112,19 @@ void makeReport(A& doc) {
     tMean += temp[i];
     pHmean += pHlist[i];
     rpmMean += rpm[i];
+    acidPwmMean += acidPwm[i];
+    basePwmMean += basePwm[i];
+    heaterPwmMean += heaterPwm[i];
+    motorPwmMean += motorPwm[i];
   }
   double n = static_cast<double>(temp.size());
   tMean /= n;
   pHmean /= n;
   rpmMean /= n;
+  acidPwmMean /= n;
+  basePwmMean /= n;
+  heaterPwmMean /= n;
+  motorPwmMean /= n;
   doc["window"]["start"] = last;
   doc["window"]["end"] = cTime;
   doc["window"]["seconds"] = (cTime - last) / 1000; // unsafe cast
@@ -113,5 +141,10 @@ void makeReport(A& doc) {
   doc["temperature_C"]["mean"] = tMean;
   doc["temperature_C"]["min"] = tempMinMax.min;
   doc["temperature_C"]["max"] = tempMinMax.max;
+  doc["actuators_avg"]["heater_pwm"] = heaterPwmMean;
+  doc["actuators_avg"]["acid_pwm"] = heaterPwmMean;
+  doc["actuators_avg"]["base_pwm"] = heaterPwmMean;
+  doc["actuators_avg"]["motor_pwm"] = motorPwmMean;
+  doc["heater_energy_Wh"] = heaterEnergy;
 }
  

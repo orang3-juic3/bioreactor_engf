@@ -89,6 +89,6 @@ double getAcidPWM() {
 
 double getBasePWM() {
     // Return normalized PWM value (0.0 to 1.0)
-    return pHImpl::error < 0 ? pHImpl::pwmSignal / 255. 0 : 0.0;
+    return pHImpl::error < 0 ? pHImpl::pwmSignal / 255.0 : 0.0;
 }
 

@@ -16,6 +16,9 @@ const float Kadc  = 3.3 / 4095; // ADC LSB (V/count)
 float Vadc, T, Rth;
 int   currtime, prevtime, T1, T2;
 bool  heater, prevheater;
+const float heaterPower = 30.0;  // Heater power in Watts (from line 76 comment)
+unsigned long lastEnergyUpdate = 0;
+double totalEnergyWh = 0.0;  // Accumulated energy in Watt-hours
 }
 
 double getTemperature() {  // in Celsius
@@ -28,6 +31,34 @@ void setTemperatureSetpoint(double temperature) {
 
 double getTemperatureSetpoint() {
   return HeatingImpl::Tset;  
+}
+double getHeaterPWM() {
+    // Return normalized PWM value (0. 0 to 1.0)
+    // PWM is 10-bit (0-1023), currently set to either 0 or 639
+    return HeatingImpl::heater ?  639.0 / 1023.0 : 0.0;
+}
+
+double getHeaterEnergyWh() {
+    using namespace HeatingImpl;
+    
+    // Update energy accumulation
+    unsigned long currentTime = millis();
+    if (lastEnergyUpdate > 0) {
+        unsigned long deltaTime = currentTime - lastEnergyUpdate; // milliseconds
+        if (heater) {
+            // Energy = Power × Time
+            // Convert ms to hours: deltaTime / (1000 ms/s × 3600 s/h)
+            totalEnergyWh += heaterPower * deltaTime / 3600000.0;
+        }
+    }
+    lastEnergyUpdate = currentTime;
+    
+    return totalEnergyWh;
+}
+
+void resetHeaterEnergy() {
+    HeatingImpl::totalEnergyWh = 0.0;
+    HeatingImpl::lastEnergyUpdate = millis();
 }
 void setupHeating() {
   using namespace HeatingImpl;
@@ -47,6 +78,7 @@ void setupHeating() {
 
 void loopHeating() {
   using namespace HeatingImpl;
+  getHeaterEnergyWh();
   currtime = millis();
 
   // 100 ms update period
@@ -95,6 +127,7 @@ void loopHeating() {
     }
   }
 }
+
 
 
 

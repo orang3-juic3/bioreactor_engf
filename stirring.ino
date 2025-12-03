@@ -120,6 +120,11 @@ double getRPMSetpoint() {
 double getPhotoevents() {
   return 0.0;
 }
+double getMotorPWM() {
+    // Return normalized PWM value (0.0 to 1.0)
+    // PWM is 12-bit (0-4095)
+    return (double)StirringImpl::g_pwmDuty / (double)StirringImpl::PWM_MAX_DUTY; // placeholder Make sure you normalise !
+}
 
 // Setter Functions
 
