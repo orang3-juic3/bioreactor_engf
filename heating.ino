@@ -68,7 +68,6 @@ void setupHeating() {
   pinMode(thermistorpin, INPUT);
   pinMode(heaterpin, OUTPUT);
   #if __NANO_PROD__
-  pinMode(LED_BUILTIN, OUTPUT);
   
   // Set PWM frequency and resolution
   ledcSetup(1, 500, 10);
