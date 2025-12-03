@@ -1,3 +1,7 @@
+namespace HeatingImpl {
+  double getTemperature();
+}
+
 namespace pHImpl {
 
 
@@ -14,7 +18,7 @@ const double offset = -4.0; // depends on calibrated pH value
 const double deadband = 0.1;
 const double Kp = 150.0, Ki = 0.5; // pi controller constants
 const double temp_calib = 25.0 + 273.15;
-double temp_curr= 25.0 + 273.15;
+double temp_curr = 25.0 + 273.15;
 unsigned long Timems, T2;
 int pwmSignal;
 
@@ -35,7 +39,7 @@ void loopPH() {
   Timems=millis();
   if(Timems-T2>=3000) { // run every 3 seconds
     // measure current pH value
-
+    temp_curr = (HeatingImpl::getTemperature() != 0.0) ? (HeatingImpl::getTemperature() + 273.15) : (25.0 + 273.15);
     inputVoltage = analogRead(pHPin);
     sensorValue = k * inputVoltage; // ph circuit value 0-5
     pH = KpH * temp_calib/temp_curr * sensorValue + offset;
