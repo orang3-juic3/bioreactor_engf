@@ -1,3 +1,6 @@
+
+
+
 namespace HeatingImpl {
 
 // Heating control parameters and constants
@@ -14,21 +17,20 @@ const float beta  = 3700.0;     // Beta coefficient
 const float Kadc  = 3.3 / 4095; // ADC LSB (V/count)
 
 float Vadc, T, Rth;
-int   currtime, prevtime, T1, T2;
+int   currtime, prevtime, T_1, T_2;
 bool  heater, prevheater;
 const float heaterPower = 30.0;  // Heater power in Watts (from line 76 comment)
 unsigned long lastEnergyUpdate = 0;
 double totalEnergyWh = 0.0;  // Accumulated energy in Watt-hours
 }
 
-double getTemperature() {  // in Celsius
-  return HeatingImpl::T;
-}
-
 void setTemperatureSetpoint(double temperature) {
   HeatingImpl::Tset = temperature;
 }
 
+double getT() {  // in Celsius
+  return HeatingImpl::T;
+}
 double getTemperatureSetpoint() {
   return HeatingImpl::Tset;  
 }
@@ -61,30 +63,33 @@ void resetHeaterEnergy() {
     HeatingImpl::lastEnergyUpdate = millis();
 }
 void setupHeating() {
+  #if HEATING
   using namespace HeatingImpl;
   pinMode(thermistorpin, INPUT);
   pinMode(heaterpin, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-
+  #if __NANO_PROD__
+  
   // Set PWM frequency and resolution
   ledcSetup(1, 500, 10);
   ledcAttachPin(heaterpin, 1);
-
+  #endif
   Serial.begin(2000000);
 
-  T1 = millis();
-  T2 = T1;
+  T_1 = millis();
+  T_2 = T_1;
+  #endif
 }
 
 void loopHeating() {
+  #if HEATING
   using namespace HeatingImpl;
   getHeaterEnergyWh();
   currtime = millis();
 
   // 100 ms update period
-  if (currtime - T1 > 0) {
+  if (currtime - T_1 > 0) {
     prevtime = currtime;
-    T1 = T1 + 100;
+    T_1 = T_1 + 100;
 
     Vadc = Kadc * analogRead(thermistorpin);
 
@@ -112,8 +117,8 @@ void loopHeating() {
     }
 
     // Live monitoring for Vadc, Rth, and T
-    if (currtime - T2 > 0) {
-    T2 = T2 + 1000;
+    if (currtime - T_2 > 0) {
+    T_2 = T_2 + 1000;
 
     Serial.print("Vadc = ");
     Serial.print(Vadc, 4);
@@ -126,6 +131,7 @@ void loopHeating() {
     Serial.println(" C");
     }
   }
+  #endif
 }
 
 

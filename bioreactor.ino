@@ -3,12 +3,25 @@
 #include <vector>
 #include <math.h>
 
+#define __NANO_PROD__ true
+#if __NANO_PROD__
+  #define HEATING true
+  #define STIRRING true
+  #define PH true
+#else
+  #define HEATING false
+  #define STIRRING false
+  #define PH false
+#endif
+
+
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Hello!");
   setupStirring();
-  //setupPH();
-  //setupHeating();
+  setupPH();
+  setupHeating();
   Serial1.begin(115200, SERIAL_8N1, 19, 20);
   Serial.println("Started (Serial1 RX=19, TX=20)");
 }
@@ -29,10 +42,11 @@ void loop() {
   // rxPin = 17 (A3), txPin = 16 (A2)
 
   loopStirring();
-  //loopPH();
-  //loopHeating();
+  loopPH();
+  loopHeating();
   //do looping things
-  temp.push_back(getTemperature());
+  temp.push_back(getT());
+
   pHlist.push_back(getPH());
   rpm.push_back(getRPM());
   acidPwm.push_back(getAcidPWM());
@@ -48,8 +62,13 @@ void loop() {
     
     JsonDocument doc;
     makeReport(doc);
+    #if __NANO_PROD__
     serializeJson(doc, Serial1);
     Serial1.print("\n");
+    #else
+    serializeJson(doc, Serial);
+    Serial.print("\n");
+    #endif
     last = millis();
     //Serial1.println("heartbeat");
     temp.clear();
@@ -130,21 +149,25 @@ void makeReport(A& doc) {
   doc["window"]["seconds"] = (cTime - last) / 1000; // unsafe cast
   doc["window"]["samples"] = samples;
   doc["setpoints"]["temperature_C"] = getTemperatureSetpoint();
-  doc["setpoints"]["pHlist"] = getpHSetpoint();
+  doc["setpoints"]["pH"] = getpHSetpoint();
   doc["setpoints"]["rpm"] = getRPMSetpoint();
   doc["rpm"]["mean"] = rpmMean;
   doc["rpm"]["min"] = rpmMinMax.min;
   doc["rpm"]["max"] = rpmMinMax.max;
-  doc["pHlist"]["mean"] = pHmean;
-  doc["pHlist"]["min"] = phMinMax.min;
-  doc["pHlist"]["max"] = phMinMax.max;
+  doc["pH"]["mean"] = pHmean;
+  doc["pH"]["min"] = phMinMax.min;
+  doc["pH"]["max"] = phMinMax.max;
   doc["temperature_C"]["mean"] = tMean;
   doc["temperature_C"]["min"] = tempMinMax.min;
   doc["temperature_C"]["max"] = tempMinMax.max;
   doc["actuators_avg"]["heater_pwm"] = heaterPwmMean;
-  doc["actuators_avg"]["acid_pwm"] = heaterPwmMean;
-  doc["actuators_avg"]["base_pwm"] = heaterPwmMean;
+  doc["actuators_avg"]["acid_pwm"] = acidPwmMean;
+  doc["actuators_avg"]["base_pwm"] = basePwmMean;
   doc["actuators_avg"]["motor_pwm"] = motorPwmMean;
   doc["heater_energy_Wh"] = heaterEnergy;
+  doc["dosing_l"]["acid"] = getAcidDosingL();
+  doc["dosing_l"]["base"] = getBaseDosingL();
+
+
 }
  
