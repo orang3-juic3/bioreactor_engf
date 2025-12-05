@@ -1,7 +1,3 @@
-namespace HeatingImpl {
-  double getTemperature();
-}
-
 namespace pHImpl {
 
 
@@ -21,15 +17,6 @@ const double temp_calib = 25.0 + 273.15;
 double temp_curr = 25.0 + 273.15;
 unsigned long Timems, T_2;
 int pwmSignal;
-// Dosing volume tracking
-double acidDosingL = 0.0;  // Cumulative acid volume in liters
-double baseDosingL = 0.0;  // Cumulative base volume in liters
-
-// Pump flow rate constants (L/min at full PWM=255)
-// These should be calibrated for your specific pumps
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-const double acidPumpFlowRate = 0.1;  // L/min at PWM=255
-const double basePumpFlowRate = 0.1;  // L/min at PWM=255
 
 }
 
@@ -78,12 +65,10 @@ void loopPH() {
       if(error > 0){
         analogWrite(acidPumpPin, pwmSignal);
         analogWrite(basePumpPin, 0);
-        acidDosingL += (pwmSignal / 255.0) * acidPumpFlowRate * deltaTime;
       }
       else{
         analogWrite(basePumpPin, pwmSignal);
         analogWrite(acidPumpPin, 0);
-        baseDosingL += (pwmSignal / 255.0) * basePumpFlowRate * deltaTime;
       }
     }
   }
@@ -111,12 +96,4 @@ double getBasePWM() {
     return pHImpl::error < 0 ? pHImpl::pwmSignal / 255.0 : 0.0;
 }
 
-// Getter functions for dosing volumes in liters
-double getAcidDosingL() {
-    return pHImpl::acidDosingL;
-}
-
-double getBaseDosingL() {
-    return pHImpl::baseDosingL;
-}
 

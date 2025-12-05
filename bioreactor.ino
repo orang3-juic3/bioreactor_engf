@@ -71,7 +71,6 @@ void loop() {
     Serial1.print("\n");
     #endif
     last = millis();
-    //Serial1.println("heartbeat");
     temp.clear();
     pHlist.clear();
     rpm.clear();
@@ -82,9 +81,6 @@ void loop() {
     samples = 0;
 
   }
-  /*while (Serial1.available()) {
-    Serial.write(Serial1.read()); // show incoming data on USB monitor
-  }*/
 }
 template <typename T> 
 class MaxMin {
@@ -166,15 +162,12 @@ void makeReport(A& doc) {
   doc["actuators_avg"]["base_pwm"] = basePwmMean;
   doc["actuators_avg"]["motor_pwm"] = motorPwmMean;
   doc["heater_energy_Wh"] = heaterEnergy;
-  doc["dosing_l"]["acid"] = getAcidDosingL();
-  doc["dosing_l"]["base"] = getBaseDosingL();
 }
 
-String serialBuffer = "";
 void handleSetpointAdj() {
   String line = Serial1.readStringUntil('\n');
   if (line.length() > 0) {
-      Serial.print("!!!!!!!!: ");
+      Serial.print("Setpoint adjustment requested: ");
       Serial.println(line);
   } else {
     return;

@@ -17,7 +17,8 @@ const float beta  = 3700.0;     // Beta coefficient
 const float Kadc  = 3.3 / 4095; // ADC LSB (V/count)
 
 float Vadc, T, Rth;
-int   currtime, prevtime, T_1, T_2;
+int  T_1, T_2;
+unsigned long currtime, prevtime;
 bool  heater, prevheater;
 const float heaterPower = 30.0;  // Heater power in Watts (from line 76 comment)
 unsigned long lastEnergyUpdate = 0;
@@ -94,7 +95,12 @@ void loopHeating() {
     Vadc = Kadc * analogRead(thermistorpin);
 
     // Calculate thermistor resistance from ADC voltage
-    Rth = R * Vadc / (Vcc - Vadc);
+    double dV = Vcc - Vadc;
+    if (dV == 0) {
+      Rth = 100000000.0;
+    } else {
+      Rth = R * Vadc / (Vcc - Vadc);
+    }
 
     // Calculate temperature from thermistor resistance (°C)
     T = (To + 273.0) * beta / (beta + (To + 273.0) * log(Rth / Ro)) - 273.0;
