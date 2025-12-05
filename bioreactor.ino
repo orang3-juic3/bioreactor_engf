@@ -3,7 +3,7 @@
 #include <vector>
 #include <math.h>
 
-#define __NANO_PROD__ true
+#define __NANO_PROD__ false
 #if __NANO_PROD__
   #define HEATING true
   #define STIRRING true
@@ -22,7 +22,7 @@ void setup() {
   setupStirring();
   setupPH();
   setupHeating();
-  Serial1.begin(115200, SERIAL_8N1, 19, 20);
+  Serial1.begin(115200, SERIAL_8N1, 19, 18);
   Serial.println("Started (Serial1 RX=19, TX=20)");
 }
 
@@ -38,9 +38,10 @@ std::vector<double> heaterPwm;
 std::vector<double> motorPwm;
 
 void loop() {
+
   
   // rxPin = 17 (A3), txPin = 16 (A2)
-
+  handleSetpointAdj();
   loopStirring();
   loopPH();
   loopHeating();
@@ -66,8 +67,8 @@ void loop() {
     serializeJson(doc, Serial1);
     Serial1.print("\n");
     #else
-    serializeJson(doc, Serial);
-    Serial.print("\n");
+    serializeJson(doc, Serial1);
+    Serial1.print("\n");
     #endif
     last = millis();
     //Serial1.println("heartbeat");
@@ -167,7 +168,30 @@ void makeReport(A& doc) {
   doc["heater_energy_Wh"] = heaterEnergy;
   doc["dosing_l"]["acid"] = getAcidDosingL();
   doc["dosing_l"]["base"] = getBaseDosingL();
-
-
 }
- 
+
+String serialBuffer = "";
+void handleSetpointAdj() {
+  String line = Serial1.readStringUntil('\n');
+  if (line.length() > 0) {
+      Serial.print("!!!!!!!!: ");
+      Serial.println(line);
+  } else {
+    return;
+  }
+  JsonDocument data;
+  DeserializationError error = deserializeJson(data, line);
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
+  String subsystem = data["subsystem"].as<String>();
+  if (subsystem == "temp") {
+    setTemperatureSetpoint(data["target_temp"].as<double>());
+  } else if (subsystem == "pH") {
+    setTargetpH(data["target_pH"].as<double>());
+  } else if (subsystem == "rpm") {
+    setStirringSetpoint(data["target_rpm"].as<float>());
+  }
+}
