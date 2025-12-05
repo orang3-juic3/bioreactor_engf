@@ -3,7 +3,7 @@
 #include <vector>
 #include <math.h>
 
-#define __NANO_PROD__ true
+#define __NANO_PROD__ false
 #if __NANO_PROD__
   #define HEATING true
   #define STIRRING true
@@ -22,7 +22,7 @@ void setup() {
   setupStirring();
   setupPH();
   setupHeating();
-  Serial1.begin(115200, SERIAL_8N1, 19, 20);
+  Serial1.begin(115200, SERIAL_8N1, 19, 18);
   Serial.println("Started (Serial1 RX=19, TX=20)");
 }
 
@@ -38,9 +38,10 @@ std::vector<double> heaterPwm;
 std::vector<double> motorPwm;
 
 void loop() {
+
   
   // rxPin = 17 (A3), txPin = 16 (A2)
-
+  handleSetpointAdj();
   loopStirring();
   loopPH();
   loopHeating();
@@ -66,8 +67,8 @@ void loop() {
     serializeJson(doc, Serial1);
     Serial1.print("\n");
     #else
-    serializeJson(doc, Serial);
-    Serial.print("\n");
+    serializeJson(doc, Serial1);
+    Serial1.print("\n");
     #endif
     last = millis();
     //Serial1.println("heartbeat");
@@ -167,7 +168,28 @@ void makeReport(A& doc) {
   doc["heater_energy_Wh"] = heaterEnergy;
   doc["dosing_l"]["acid"] = getAcidDosingL();
   doc["dosing_l"]["base"] = getBaseDosingL();
-
-
+}
+String serialBuffer = "";
+void handleSetpointAdj() {
+      while (Serial1.available() > 0) {
+        char inChar = Serial1.read();
+        
+        // Check for newline character (end of string)
+        if (inChar == '\n' || inChar == '\r') {
+            if (serialBuffer.length() > 0) {
+                // Publish the received string to MQTT
+                Serial.print("Received: ");
+                Serial.println(serialBuffer);
+                
+                //mqtt.publish(mqtt_topic, serialBuffer);
+                
+                // Clear the buffer for the next string
+                serialBuffer = "";
+            }
+        } else {
+            // Add character to buffer
+            serialBuffer += inChar;
+        }
+    }
 }
  
