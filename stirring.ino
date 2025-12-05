@@ -69,8 +69,10 @@ static const float DUTY_PER_RPM = (float)PWM_MAX_DUTY / RPM_MAX_CAP;
 static const int DUTY_SLEW_PER_10MS = 50;
 
 // -------------------- State Variables --------------------
+// Added timestamp-based RPM fallback (g_prevPulseUs) and safe atomic reads in computeRPM.
 volatile uint32_t g_pulseCount  = 0;
 volatile uint32_t g_lastPulseUs = 0;
+volatile uint32_t g_prevPulseUs = 0;
 
 static float    g_rpm         = 0.0f;
 static float    g_setpointRpm = RPM_SETPOINT_DEF;
@@ -83,10 +85,11 @@ static uint32_t t_lastRpmMs   = 0;
 static uint32_t t_lastCtrlMs  = 0;
 static uint32_t t_lastDebugMs = 0;
 
-// ISR 
+// ISR
 void IRAM_ATTR hallISR() {
-  g_pulseCount++;
+  g_prevPulseUs = g_lastPulseUs;
   g_lastPulseUs = micros();
+  g_pulseCount++;
 }
 
 // Helper Functions 
@@ -104,7 +107,32 @@ static inline void motorSetDuty(uint32_t duty) {
 
 static inline float computeRPM(uint32_t pulses, uint32_t windowMs) {
   if (windowMs == 0) return 0.0f;
-  return ((float)pulses / (float)HALL_PPR) * (60000.0f / (float)windowMs);
+
+  // Windowed calculation if we have pulses
+  if (pulses > 0) {
+    return ((float)pulses / (float)HALL_PPR) * (60000.0f / (float)windowMs);
+  }
+
+  // Fallback: instantaneous period between last two pulses
+  uint32_t lastPulse, prevPulse;
+  noInterrupts();
+  lastPulse = g_lastPulseUs;
+  prevPulse = g_prevPulseUs;
+  interrupts();
+
+  // If no previous pulse or invalid timestamp order, return 0
+  if (prevPulse == 0 || lastPulse <= prevPulse) {
+    return 0.0f;
+  }
+
+  // Compute period between last two pulses (uint32_t subtraction handles wrap)
+  uint32_t delta_us = lastPulse - prevPulse;
+  if (delta_us == 0) {
+    return 0.0f;
+  }
+
+  // RPM = 60,000,000 / (delta_us * pulses_per_rev)
+  return 60000000.0f / ((float)delta_us * (float)HALL_PPR);
 }
 
 static inline uint32_t limitDutySlew(uint32_t current, int target, int maxStep) {
