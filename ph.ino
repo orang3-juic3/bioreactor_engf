@@ -10,11 +10,11 @@ double pH=0, pHsmoothed=0, sensorValue=0, inputVoltage=0, error=0, integralError
 double goalpH = 7.0;
 
 
-const byte pHPin=A0, acidPumpPin=3, basePumpPin=9; // pins need to be the same on breadboard
+const byte pHPin=A0, acidPumpPin=10, basePumpPin=9; // pins need to be the same on breadboard
 //acidpump is pump B and basepump is A for now
-const double KpH = 3.5;
+const double KpH = 1.83;
 const double k = 5.0/4095.0;
-const double offset = -4.0; // depends on calibrated pH value
+const double offset = 2.8; // depends on calibrated pH value
 const double deadband = 0.1;
 const double Kp = 150.0, Ki = 0.5; // pi controller constants
 const double temp_calib = 25.0 + 273.15;
@@ -54,7 +54,7 @@ void loopPH() {
     inputVoltage = analogRead(pHPin);
     sensorValue = k * inputVoltage; // ph circuit value 0-5
     pH = KpH * temp_calib/temp_curr * sensorValue + offset;
-    pHsmoothed = 0.9*pHsmoothed + 0.1*pH; // IIR smoothing to reduce noise
+    pHsmoothed = 0.6*pHsmoothed + 0.4*pH; // IIR smoothing to reduce noise
 
     Serial.println(pHsmoothed);
 
