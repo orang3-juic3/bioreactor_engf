@@ -100,6 +100,7 @@ double getpHSetpoint(){
 void setTargetpH(double targetpH){
     pHImpl::goalpH = targetpH;
 }
+
 double getAcidPWM() {
     // Return normalized PWM value (0. 0 to 1.0)
     return pHImpl::error > 0 ? pHImpl::pwmSignal / 255.0 : 0.0;

@@ -169,13 +169,47 @@ void makeReport(A& doc) {
   doc["dosing_l"]["acid"] = getAcidDosingL();
   doc["dosing_l"]["base"] = getBaseDosingL();
 }
+
+String serialBuffer = "";
 void handleSetpointAdj() {
-    String line = Serial1.readStringUntil('\n');
-    if (line.length() > 0) {
-        Serial.print("Publishing to MQTT: ");
-        Serial.println(line);
-        mqtt.publish(mqtt_topic, line);
+  while (Serial1.available() > 0) {
+    char inChar = Serial1.read();
+
+    // Check for newline character (end of string)
+    if (inChar == '\n' || inChar == '\r') {
+      if (serialBuffer.length() > 0) {
+        // Publish the received string to MQTT
+        Serial.print("Received: ");
+        Serial.println(serialBuffer);
+
+        // mqtt.publish(mqtt_topic, serialBuffer);
+
+        // Clear the buffer for the next string
+        serialBuffer = "";
+      }
+    } else {
+      // Add character to buffer
+      serialBuffer += inChar;
     }
-    }
+  }
+  JsonDocument data;
+  DeserializationError error = deserializeJson(data, payload);
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return;
+  }
+  switch (data["subsystem"]) {
+  case "temp":
+    setTemperatureSetpoint(data["target_temp"]);
+    break;
+  case "pH":
+    setTargetpH(data["target_pH"]);
+    break;
+  case "rpm":
+    setStirringSetpoint(data["target_rpm"]);
+    break;
+  default:
+    break;
+  }
 }
- 
