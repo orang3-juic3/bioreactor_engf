@@ -172,44 +172,26 @@ void makeReport(A& doc) {
 
 String serialBuffer = "";
 void handleSetpointAdj() {
-  while (Serial1.available() > 0) {
-    char inChar = Serial1.read();
-
-    // Check for newline character (end of string)
-    if (inChar == '\n' || inChar == '\r') {
-      if (serialBuffer.length() > 0) {
-        // Publish the received string to MQTT
-        Serial.print("Received: ");
-        Serial.println(serialBuffer);
-
-        // mqtt.publish(mqtt_topic, serialBuffer);
-
-        // Clear the buffer for the next string
-        serialBuffer = "";
-      }
-    } else {
-      // Add character to buffer
-      serialBuffer += inChar;
-    }
+  String line = Serial1.readStringUntil('\n');
+  if (line.length() > 0) {
+      Serial.print("!!!!!!!!: ");
+      Serial.println(line);
+  } else {
+    return;
   }
   JsonDocument data;
-  DeserializationError error = deserializeJson(data, payload);
+  DeserializationError error = deserializeJson(data, line);
   if (error) {
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.f_str());
     return;
   }
-  switch (data["subsystem"]) {
-  case "temp":
-    setTemperatureSetpoint(data["target_temp"]);
-    break;
-  case "pH":
-    setTargetpH(data["target_pH"]);
-    break;
-  case "rpm":
-    setStirringSetpoint(data["target_rpm"]);
-    break;
-  default:
-    break;
+  String subsystem = data["subsystem"].as<String>();
+  if (subsystem == "temp") {
+    setTemperatureSetpoint(data["target_temp"].as<double>());
+  } else if (subsystem == "pH") {
+    setTargetpH(data["target_pH"].as<double>());
+  } else if (subsystem == "rpm") {
+    setStirringSetpoint(data["target_rpm"].as<float>());
   }
 }
